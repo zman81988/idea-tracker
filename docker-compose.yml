@@ -1,0 +1,38 @@
+version: "3"
+services:
+  server:
+    build: ./server
+    container_name: idea_tracker_server
+    #context: ./server/
+    command: /usr/app/node_modules/.bin/nodemon src/index.js
+    volumes:
+      - ./server:/usr/app
+      - /usr/app/node_modules
+    ports:
+      - "8080:8080"
+    env_file: ./.env
+  client:
+    build: ./client
+    container_name: idea_tracker_client
+    #context: ./client/
+    #command: yarn start
+    volumes:
+      - ./client:/usr/app
+      - /usr/app/node_modules
+    depends_on:
+      - server
+    ports:
+      - "3000:3000"
+    env_file: ./.env
+  mongo:
+    # upgrade to https://medium.com/faun/managing-mongodb-on-docker-with-docker-compose-26bf8a0bbae3 later
+    image: mongo
+    container_name: idea_tracker_database
+    volumes:
+      - ./mongo-volume:/data/db
+    ports:
+      - "27017:27017"
+volumes:
+  server:
+  client:
+  mongo:
