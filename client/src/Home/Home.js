@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Grid, Container } from "@material-ui/core";
 import CreateIdea from "./CreateIdea";
 import IdeaTable from "./IdeaTable";
 
-const Home = () => {
+const Home = props => {
+  const { user } = props;
   const [ideas, setIdeas] = useState([]);
   const [idea, setIdea] = useState({ detail: "", title: "" });
   return (
@@ -19,6 +20,7 @@ const Home = () => {
               setIdeas={setIdeas}
               idea={idea}
               ideas={ideas}
+              user={user}
             />
           </Grid>
         </Grid>

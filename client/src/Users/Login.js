@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   TextField,
   Button,
   Container,
   IconButton,
-  Snackbar
+  Snackbar,
+  Link as MaterialLink
 } from "@material-ui/core";
 import { Close } from "@material-ui/icons";
-import { Redirect } from "react-router-dom";
+import { Redirect, Link } from "react-router-dom";
 
 const Login = props => {
   const { setUser } = props;
@@ -41,16 +42,10 @@ const Login = props => {
       setLoginSuccess(false);
       setOpen(true);
     }
-    // const responseText = await response.json();
-    // console.log(responseText);
   };
 
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [open, setOpen] = useState(false);
-
-  // const handleClick = () => {
-  //   setOpen(true);
-  // };
 
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
@@ -86,6 +81,9 @@ const Login = props => {
           Login
         </Button>
       </form>
+      <MaterialLink component={Link} to="/signup">
+        No login? SignUp
+      </MaterialLink>
       {loginSuccess ? (
         <Redirect push to="/" />
       ) : (

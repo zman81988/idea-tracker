@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   Paper,
   TableContainer,
@@ -16,7 +16,6 @@ const IdeaTable = props => {
     const fetchIdeas = async () => {
       const result = await fetch(getIdeas);
       const resultText = await result.json();
-      console.log(resultText);
       setIdeas(resultText);
     };
     fetchIdeas();
@@ -41,7 +40,13 @@ const IdeaTable = props => {
                 <TableCell>{idea.detail}</TableCell>
                 <TableCell>{idea.comments.length}</TableCell>
                 <TableCell>{idea.date}</TableCell>
-                <TableCell>{idea.author}</TableCell>
+                {typeof idea.author === "string" ? (
+                  <TableCell>{idea.author}</TableCell>
+                ) : (
+                  <TableCell>
+                    {idea.author.firstName + " " + idea.author.lastName}{" "}
+                  </TableCell>
+                )}
               </TableRow>
             );
           })}

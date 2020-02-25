@@ -1,16 +1,31 @@
 version: "3"
 services:
-  server:
-    build: ./server
-    container_name: idea_tracker_server
+  web_service:
+    build: ./web_service
+    container_name: web_service
     #context: ./server/
-    command: /usr/app/node_modules/.bin/nodemon src/index.js
+    command: /usr/app/node_modules/.bin/nodemon src/server.js
     volumes:
-      - ./server:/usr/app
+      - ./web_service:/usr/app
       - /usr/app/node_modules
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     env_file: ./.env
+    depends_on:
+      - mongo
+  hubspot_service:
+    build: ./hubspot_service
+    container_name: hubspot_service
+    #context: ./server/
+    command: /usr/app/node_modules/.bin/nodemon src/server.js
+    volumes:
+      - ./hubspot_service:/usr/app
+      - /usr/app/node_modules
+    expose:
+      - "8080"
+    env_file: ./.env
+    depends_on:
+      - mongo
   client:
     build: ./client
     container_name: idea_tracker_client
@@ -20,7 +35,7 @@ services:
       - ./client:/usr/app
       - /usr/app/node_modules
     depends_on:
-      - server
+      - web_service
     ports:
       - "3000:3000"
     env_file: ./.env
@@ -30,9 +45,10 @@ services:
     container_name: idea_tracker_database
     volumes:
       - ./mongo-volume:/data/db
-    ports:
-      - "27017:27017"
+    expose:
+      - "27017"
 volumes:
-  server:
+  web_service:
+  hubspot_service:
   client:
   mongo:
