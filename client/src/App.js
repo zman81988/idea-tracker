@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
-  TextField,
   Button,
-  Container,
   AppBar,
   Toolbar,
   IconButton,
   Typography,
-  Link as MaterialLink,
-  Snackbar
+  Link as MaterialLink
 } from "@material-ui/core";
-import { Menu, Close } from "@material-ui/icons";
+import { Menu } from "@material-ui/icons";
 import {
   BrowserRouter as Router,
   Switch,
@@ -18,7 +15,7 @@ import {
   Link,
   Redirect
 } from "react-router-dom";
-import logo from "./logo.svg";
+
 import "./App.css";
 
 import Home from "./Home/Home";
@@ -45,17 +42,13 @@ function App() {
             </MaterialLink>
           </Typography>
           <Typography className="full-width" variant="h6">
-            <MaterialLink
-              component={Link}
-              to="/connect"
-              style={{ color: "white" }}
-            >
+            <MaterialLink href="/oauth/connect" style={{ color: "white" }}>
               Connect to HS
             </MaterialLink>
           </Typography>
           {user.email ? (
             <Button onClick={logOut}>
-              <Typography>{user.email}</Typography>
+              <Typography>{user.firstName + " " + user.lastName}</Typography>
             </Button>
           ) : (
             <MaterialLink
@@ -75,9 +68,13 @@ function App() {
         <Route path="/signup">
           <SignUp setUser={setUser} />
         </Route>
-        <Route path="/">
-          <Home user={user} />
-        </Route>
+        {Object.entries(user).length === 0 && user.constructor === Object ? (
+          <Redirect to="/login" />
+        ) : (
+          <Route path="/">
+            <Home user={user} />
+          </Route>
+        )}
       </Switch>
     </Router>
   );
