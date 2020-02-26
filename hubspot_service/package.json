@@ -1,0 +1,19 @@
+{
+  "name": "hubspot-service",
+  "version": "1.0.0",
+  "description": "The service used to make the API calls to HubSpot",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Zack Wolfson",
+  "license": "MIT",
+  "dependencies": {
+    "@hubspot/api-client": "^0.2.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "mongoose": "^5.8.10"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
+}

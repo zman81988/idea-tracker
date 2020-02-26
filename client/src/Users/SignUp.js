@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   TextField,
   Button,
@@ -10,22 +10,23 @@ import { Close } from "@material-ui/icons";
 import { Redirect } from "react-router-dom";
 
 const SignUp = props => {
-  const { user, setUser } = props;
-  setUser({
+  const { setUser } = props;
+  const [potentialUser, setPotentialUser] = useState({
     email: "",
     password: "",
     confirmPassword: "",
-    firstname: "",
-    lastname: ""
+    firstName: "",
+    lastName: "",
+    rank: ""
   });
 
   const [signUpSuccess, setSignUpSuccess] = useState(false);
 
   const [passwordsMatch, setPasswordsMatch] = useState(false);
   const onChange = e => {
-    setUser({ ...user, [e.target.id]: e.target.value });
+    setPotentialUser({ ...potentialUser, [e.target.id]: e.target.value });
     if (e.target.id === "confirmPassword" || e.target.id === "password") {
-      if (user.password === user.confirmPassword) {
+      if (potentialUser.password === potentialUser.confirmPassword) {
         setPasswordsMatch(true);
       } else {
         setPasswordsMatch(false);
@@ -36,7 +37,7 @@ const SignUp = props => {
     e.preventDefault();
     const userSignUpHeaders = new Headers();
     userSignUpHeaders.append("Content-Type", "application/json");
-    const body = JSON.stringify(user);
+    const body = JSON.stringify(potentialUser);
 
     const userSignUpOptions = {
       method: "POST",
@@ -47,6 +48,7 @@ const SignUp = props => {
     const response = await fetch(userSignUpRequest);
     if (response.status === 200) {
       setSignUpSuccess(true);
+      setUser(response.body);
     } else if (response.status === 409) {
       setOpen(true);
       setMessage("Email already exists.");
@@ -71,19 +73,27 @@ const SignUp = props => {
     <Container>
       <form onSubmit={onSubmit}>
         <TextField
-          label="firstname"
-          id="firstname"
+          label="First Name"
+          id="firstName"
           onChange={onChange}
-          name="firstname"
-          value={user.firstname}
+          name="firstName"
+          value={potentialUser.firstName}
           fullWidth
         ></TextField>
         <TextField
-          label="lastname"
-          id="lastname"
+          label="Last Name"
+          id="lastName"
           onChange={onChange}
-          name="lastname"
-          value={user.lastname}
+          name="lastName"
+          value={potentialUser.lastName}
+          fullWidth
+        ></TextField>
+        <TextField
+          label="rank"
+          id="rank"
+          onChange={onChange}
+          name="rank"
+          value={potentialUser.rank}
           fullWidth
         ></TextField>
         <TextField
@@ -91,7 +101,7 @@ const SignUp = props => {
           id="email"
           onChange={onChange}
           name="email"
-          value={user.email}
+          value={potentialUser.email}
           autoComplete="username"
           fullWidth
         ></TextField>
@@ -101,7 +111,7 @@ const SignUp = props => {
           id="password"
           onChange={onChange}
           name="password"
-          value={user.password}
+          value={potentialUser.password}
           type="password"
           autoComplete="new-password"
           fullWidth
@@ -111,7 +121,7 @@ const SignUp = props => {
           id="confirmPassword"
           onChange={onChange}
           name="confirmPassword"
-          value={user.confirmPassword}
+          value={potentialUser.confirmPassword}
           type="password"
           autoComplete="new-password"
           fullWidth
