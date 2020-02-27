@@ -20,6 +20,9 @@ const IdeaTable = props => {
     };
     fetchIdeas();
   }, []);
+  for (const idea in ideas) {
+    console.log(idea.author);
+  }
   return (
     <TableContainer component={Paper}>
       <Table>
@@ -40,12 +43,16 @@ const IdeaTable = props => {
                 <TableCell>{idea.detail}</TableCell>
                 <TableCell>{idea.comments.length}</TableCell>
                 <TableCell>{idea.date}</TableCell>
-                {typeof idea.author === "string" ? (
-                  <TableCell>{idea.author}</TableCell>
+                {idea.author ? (
+                  typeof idea.author === "string" ? (
+                    <TableCell>{idea.author}</TableCell>
+                  ) : (
+                    <TableCell>
+                      {idea.author.firstName + " " + idea.author.lastName}{" "}
+                    </TableCell>
+                  )
                 ) : (
-                  <TableCell>
-                    {idea.author.firstName + " " + idea.author.lastName}{" "}
-                  </TableCell>
+                  <TableCell>Unknown</TableCell>
                 )}
               </TableRow>
             );
