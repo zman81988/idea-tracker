@@ -48,7 +48,8 @@ const SignUp = props => {
     const response = await fetch(userSignUpRequest);
     if (response.status === 200) {
       setSignUpSuccess(true);
-      setUser(response.body);
+      const responseJSON = await response.json();
+      setUser(responseJSON.savedUser);
     } else if (response.status === 409) {
       setOpen(true);
       setMessage("Email already exists.");
@@ -117,7 +118,7 @@ const SignUp = props => {
           fullWidth
         ></TextField>
         <TextField
-          label="confirmPassword"
+          label="Confirm Password"
           id="confirmPassword"
           onChange={onChange}
           name="confirmPassword"
