@@ -2,15 +2,11 @@ require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const hubspot = require("@hubspot/api-client");
-const connectDb = require("./connection");
+
 const app = express();
 var apiRouter = express.Router();
 
 app.use(bodyParser.json());
-
-const { CLIENT_ID, BASE_URL, SCOPES, CLIENT_SECRET } = process.env;
-
-const REDIRECT_URL = `${BASE_URL}/oauth/callback`;
 
 const hubspotClient = new hubspot.Client();
 
@@ -52,7 +48,29 @@ apiRouter.get("/contacts/:accessToken", async (req, res, next) => {
 });
 
 apiRouter.post("/contacts/create/:accessToken", async (req, res) => {
-  // create contacts, will recieve in batches
+  const { accessToken } = req.params;
+  hubspotClient.setAccessToken(accessToken);
+  const contactsToCreate = req.body;
+  const inputs = contactsToCreate.map(contact => {
+    return {
+      properties: {
+        num_ideas_submitted: contact.numIdeasSubmitted,
+        faction_rank: contact.rank,
+        email: contact.email,
+        firstname: contact.firstName,
+        lastname: contact.lastnName
+      }
+    };
+  });
+  try {
+    const createResponse = await hubspotClient.crm.contacts.batchApi.createBatch(
+      { inputs }
+    );
+    console.log(createResponse.body);
+    res.send(createResponse.body);
+  } catch (err) {
+    console.log(err.name);
+  }
 });
 apiRouter.post("/contacts/update/:accessToken", async (req, res) => {
   const { accessToken } = req.params;
@@ -82,7 +100,11 @@ apiRouter.post("/contacts/update/:accessToken", async (req, res) => {
 
 apiRouter.get("/properties/:accessToken", async (req, res) => {
   const { accessToken } = req.params;
-  hubspotClient.setAccessToken(accessToken);
+  const propertyGroupInfo = {
+    name: "ideatrackergroup",
+    displayOrder: -1,
+    label: "Idea Tracker Group"
+  };
   const createProperty = async groupName => {
     const inputs = [
       {
@@ -111,27 +133,59 @@ apiRouter.get("/properties/:accessToken", async (req, res) => {
       console.log(err.name);
     }
   };
-  const propertyGroupInfo = {
-    name: "ideatrackergroup",
-    displayOrder: -1,
-    label: "Idea Tracker Group"
-  };
-  try {
-    const groupResponse = await hubspotClient.crm.properties.groupsApi.create(
-      "contacts",
-      propertyGroupInfo
+  hubspotClient.setAccessToken(accessToken);
+  const checkForPropInfo = async () => {
+    const existingPropertyGroups = await hubspotClient.crm.properties.groupsApi.getAll(
+      "contacts"
     );
-    console.log(groupResponse);
-    const propertiesResponse = await createProperty(groupResponse.name);
-    res.send(propertiesResponse);
-  } catch (err) {
-    if (err.name === "HttpError" && err.statusCode === 409) {
-      const propertiesResponse = await createProperty(propertyGroupInfo.name);
-      res.send(propertiesResponse);
+
+    const groupExists = existingPropertyGroups.body.results.find(
+      group => group.name === propertyGroupInfo.name
+    );
+    if (groupExists) {
+      const getAllExistingProperties = async (startingProperties, offset) => {
+        const pageOfProperties = await hubspotClient.crm.properties.coreApi.getAll(
+          "contacts",
+          false,
+          { offset }
+        );
+        const endingProperties = startingProperties.concat(
+          pageOfProperties.body.results
+        );
+        if (pageOfProperties.body.paging) {
+          return await getAllExistingProperties(
+            endingProperties,
+            pageOfProperties.body.page.next.after
+          );
+        } else return endingProperties;
+      };
+      const allProperties = await getAllExistingProperties([], 0);
+      const existingProperties = allProperties.filter(property => {
+        property.name === "faction_rank" ||
+          property.name === "num_ideas_submitted";
+      });
+      console.log(existingProperties);
+      if (existingProperties.length === 0) {
+        await createProperty(propertyGroupInfo.name);
+        res.send("Properties Created");
+      } else {
+        res.send("Properties Already Existed");
+      }
     } else {
-      //console.log(err);
+      try {
+        const groupResponse = await hubspotClient.crm.properties.groupsApi.create(
+          "contacts",
+          propertyGroupInfo
+        );
+        const propertiesResponse = await createProperty(propertyGroupInfo.name);
+        res.send(propertiesResponse);
+      } catch (err) {
+        console.log(err);
+      }
     }
-  }
+  };
+
+  checkForPropInfo();
 });
 
 app.use("/api", apiRouter);
@@ -141,8 +195,4 @@ app.use((err, req, res, next) => {
 });
 
 console.log("process environment", process.env.NODE_ENV);
-app.listen(process.env.PORT || 8080, () => {
-  connectDb().then(() => {
-    console.log("database connected");
-  });
-});
+app.listen(process.env.PORT || 8080, () => {});
