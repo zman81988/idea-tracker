@@ -47,9 +47,9 @@ const SignUp = props => {
     const userSignUpRequest = new Request("/api/users/", userSignUpOptions);
     const response = await fetch(userSignUpRequest);
     if (response.status === 200) {
-      setSignUpSuccess(true);
       const responseJSON = await response.json();
       setUser(responseJSON.savedUser);
+      setSignUpSuccess(true);
     } else if (response.status === 409) {
       setOpen(true);
       setMessage("Email already exists.");
