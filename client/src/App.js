@@ -23,12 +23,17 @@ import Home from "./Home/Home";
 import SignUp from "./Users/SignUp";
 
 import Login from "./Users/Login";
+import Profile from "./Users/Profile";
 
 function App() {
   const [user, setUser] = useState({});
   const logOut = () => {
     setUser({});
   };
+
+  const isLoggedIn = user =>
+    !(Object.entries(user).length === 0 && user.constructor === Object);
+
   return (
     <Router>
       <AppBar position="static">
@@ -47,9 +52,13 @@ function App() {
             </MaterialLink>
           </Typography>
           {user.email ? (
-            <Button onClick={logOut}>
-              <Typography>{user.firstName + " " + user.lastName}</Typography>
-            </Button>
+            <MaterialLink
+              component={Link}
+              to="/profile"
+              style={{ color: "white" }}
+            >
+              <Button color="inherit">{`${user.firstName} ${user.lastName}`}</Button>
+            </MaterialLink>
           ) : (
             <MaterialLink
               component={Link}
@@ -68,13 +77,16 @@ function App() {
         <Route path="/signup">
           <SignUp setUser={setUser} />
         </Route>
-        {Object.entries(user).length === 0 && user.constructor === Object ? (
-          <Redirect to="/login" />
-        ) : (
-          <Route path="/">
-            <Home user={user} />
-          </Route>
-        )}
+        <Route path="/profile">
+          {isLoggedIn(user) ? (
+            <Profile user={user} setUser={setUser} />
+          ) : (
+            <Redirect to="/login" />
+          )}
+        </Route>
+        <Route path="/">
+          {isLoggedIn(user) ? <Home user={user} /> : <Redirect to="/login" />}
+        </Route>
       </Switch>
     </Router>
   );

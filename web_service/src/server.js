@@ -115,11 +115,29 @@ const createExistingContacts = async (accessToken, pageNumber) => {
   }
 };
 
+const createOrUpdateCompanies = async accessToken => {
+  console.log("Creating or Updating Companies");
+  try {
+    const allFactions = await Faction.find({});
+    for (const faction of allFactions) {
+      const company = await axios.get(
+        `http://hubspot_service:8080/api/companies/create-or-update/${faction.domain}/${accessToken}`
+      );
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log("company", company.data);
+    }
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
 const initialSyncWithHubSpot = async accessToken => {
   await getAndSaveHubSpotContacts(accessToken);
   await setUpHubSpotProperties(accessToken);
   await updateExistingHubSpotContacts(accessToken, 0);
   await createExistingContacts(accessToken, 0);
+  await createOrUpdateCompanies(accessToken);
 };
 
 app.get("/oauth/connect", async (req, res) => {
@@ -177,8 +195,9 @@ apiRouter.post("/ideas", async (req, res, next) => {
   console.log(idea);
   try {
     const dbResponse = await Idea.create(idea);
-    console.log(dbResponse);
-    res.send(dbResponse);
+    const populatedIdea = await dbResponse.populate("author").execPopulate();
+    console.log(populatedIdea);
+    res.send(populatedIdea);
   } catch (err) {
     next(err);
   }
@@ -237,6 +256,22 @@ apiRouter.post("/users", async (req, res, next) => {
       res.status(409).send("User with email address already exists");
     }
 
+    next(err);
+  }
+});
+
+apiRouter.put("/users", async (req, res, next) => {
+  const user = req.body;
+  console.log("user", user);
+  try {
+    const updatedUser = await Users.findOneAndUpdate(
+      { email: user.email },
+      user,
+      { new: true }
+    );
+    console.log("updatedUser", updatedUser);
+    res.send({ updatedUser });
+  } catch (err) {
     next(err);
   }
 });

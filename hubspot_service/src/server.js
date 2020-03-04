@@ -14,6 +14,37 @@ apiRouter.get("/ping", (req, res) => {
   res.send("pong");
 });
 
+apiRouter.get(
+  "/companies/create-or-update/:faction/:accessToken",
+  async (req, res, next) => {
+    const { faction, accessToken } = req.params;
+    hubspotClient.setAccessToken(accessToken);
+    const searchCriteria = {
+      filterGroups: [
+        {
+          filters: [{ propertyName: "domain", operator: "EQ", value: faction }]
+        }
+      ]
+    };
+    try {
+      const companiesByDomain = await hubspotClient.crm.companies.searchApi.doSearch(
+        searchCriteria
+      );
+      if (companiesByDomain.body.results.length > 0) {
+        res.send(companiesByDomain.body.results[0]);
+      } else {
+        const newCompany = await hubspotClient.crm.companies.basicApi.create({
+          properties: { domain: faction }
+        });
+        res.send(newCompany.body);
+      }
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  }
+);
+
 apiRouter.get("/contacts/:accessToken", async (req, res, next) => {
   const { accessToken } = req.params;
   hubspotClient.setAccessToken(accessToken);
@@ -58,7 +89,7 @@ apiRouter.post("/contacts/create/:accessToken", async (req, res) => {
         faction_rank: contact.rank,
         email: contact.email,
         firstname: contact.firstName,
-        lastname: contact.lastnName
+        lastname: contact.lastName
       }
     };
   });

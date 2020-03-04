@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@hubspot/api-client@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@hubspot/api-client/-/api-client-0.2.0.tgz#3856e6fca6ac62c0cd53c092837688ece0d3595e"
-  integrity sha512-K3XS+5TEgSlvwcHAiuFlIfnP7hIPs9ri/DBK1UHMD9c6T/u8hO241LsEvnyH5XtoQEGp9CL48QuRp36dQmE/Gw==
+"@hubspot/api-client@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@hubspot/api-client/-/api-client-0.4.0.tgz#b95b69ed60e3197deeff8cac61ad11adf94e8da2"
+  integrity sha512-+jk7ElOfG4WDqVwqzFuZ0lD/65eV6BXhWtEdVc17WNONE4c5QVU7KDQ+Gmxflyc1Npd1whd27IWZWLJxnde0WA==
   dependencies:
     "@types/bluebird" "^3.5.29"
     "@types/lodash" "^4.14.149"
