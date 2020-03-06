@@ -42,9 +42,72 @@ const getAndSaveHubSpotContacts = async accessToken => {
   }
 };
 
+const updateExistingHubSpotContacts = async (accessToken, pageNumber) => {
+  console.log("updating existing contacts");
+  const CONTACTS_PER_PAGE = 2;
+  const skip = pageNumber * CONTACTS_PER_PAGE;
+  try {
+    const pageOfContactsFromDB = await Users.find(
+      { hubspotContactId: { $exists: true } },
+      null,
+      { skip, limit: CONTACTS_PER_PAGE }
+    );
+    await axios.post(
+      `http://hubspot_service:8080/api/contacts/update/${accessToken}`,
+      pageOfContactsFromDB
+    );
+    console.log(pageOfContactsFromDB);
+    if (pageOfContactsFromDB.length > 0) {
+      pageNumber++;
+      return await updateExistingHubSpotContacts(accessToken, pageNumber);
+    } else {
+      console.log("Done updating contacts");
+      return;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const createExistingContacts = async (accessToken, pageNumber) => {
+  console.log("create existing contacts");
+  const CONTACTS_PER_PAGE = 2;
+  const skip = pageNumber * CONTACTS_PER_PAGE;
+  try {
+    const pageOfContactsFromDB = await Users.find(
+      { hubspotContactId: { $exists: false } },
+      null,
+      { skip, limit: CONTACTS_PER_PAGE }
+    );
+    const createResponse = await axios.post(
+      `http://hubspot_service:8080/api/contacts/create/${accessToken}`,
+      pageOfContactsFromDB
+    );
+
+    for (const contact of createResponse.data.results) {
+      await Users.findOneAndUpdate(
+        { email: contact.email },
+        { hubspotContactId: contact.id }
+      );
+    }
+    console.log(pageOfContactsFromDB);
+    if (pageOfContactsFromDB.length > 0) {
+      pageNumber++;
+      return await createExistingContacts(accessToken, pageNumber);
+    } else {
+      console.log("Done creating contacts");
+      return;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 const initialSyncWithHubSpot = async accessToken => {
   await getAndSaveHubSpotContacts(accessToken);
   await setUpHubSpotProperties(accessToken);
+  await updateExistingHubSpotContacts(accessToken, 0);
+  await createExistingContacts(accessToken, 0);
 };
 
 app.get("/oauth/connect", async (req, res) => {

@@ -41,6 +41,56 @@ apiRouter.get("/contacts/:accessToken", async (req, res, next) => {
   }
 });
 
+apiRouter.post("/contacts/create/:accessToken", async (req, res, next) => {
+  const { accessToken } = req.params;
+  hubspotClient.setAccessToken(accessToken);
+  const contactsToCreate = req.body;
+  const inputs = contactsToCreate.map(contact => {
+    return {
+      properties: {
+        num_ideas_submitted: contact.numIdeasSubmitted,
+        faction_rank: contact.rank,
+        email: contact.email,
+        firstname: contact.firstName,
+        lastname: contact.lastName
+      }
+    };
+  });
+  try {
+    const createResponse = await hubspotClient.crm.contacts.batchApi.createBatch(
+      { inputs }
+    );
+    console.log(createResponse.body);
+    res.send(createResponse.body);
+  } catch (err) {
+    next(err);
+  }
+});
+apiRouter.post("/contacts/update/:accessToken", async (req, res, next) => {
+  const { accessToken } = req.params;
+  hubspotClient.setAccessToken(accessToken);
+  const contactsToUpdate = req.body;
+  const inputs = contactsToUpdate.map(contact => {
+    return {
+      id: contact.hubspotContactId,
+      properties: {
+        num_ideas_submitted: contact.numIdeasSubmitted,
+        faction_rank: contact.rank
+      }
+    };
+  });
+
+  try {
+    const updateResponse = await hubspotClient.crm.contacts.batchApi.updateBatch(
+      { inputs }
+    );
+    console.log(updateResponse.body);
+    res.send(updateResponse.body);
+  } catch (err) {
+    next(err);
+  }
+});
+
 apiRouter.get("/properties/:accessToken", async (req, res, next) => {
   const { accessToken } = req.params;
   const propertyGroupInfo = {
