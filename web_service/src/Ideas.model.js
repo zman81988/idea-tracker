@@ -7,13 +7,10 @@ const ideaSchema = new mongoose.Schema({
   detail: {
     type: String
   },
-  comments: [
-    {
-      body: { type: String },
-      createdAt: { type: Date, default: Date.now() },
-      author: { type: mongoose.ObjectId, ref: User }
-    }
-  ],
+  date: {
+    type: Date,
+    default: Date.now()
+  },
   author: { type: mongoose.ObjectId, ref: User }
 });
 const Idea = mongoose.model("Idea", ideaSchema);

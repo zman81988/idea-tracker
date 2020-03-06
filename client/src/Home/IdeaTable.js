@@ -30,7 +30,6 @@ const IdeaTable = props => {
           <TableRow>
             <TableCell>Idea Title</TableCell>
             <TableCell>Idea Detail</TableCell>
-            <TableCell>Number of Comments</TableCell>
             <TableCell>Date Added</TableCell>
             <TableCell>Author</TableCell>
           </TableRow>
@@ -41,8 +40,7 @@ const IdeaTable = props => {
               <TableRow key={idea._id}>
                 <TableCell>{idea.title}</TableCell>
                 <TableCell>{idea.detail}</TableCell>
-                <TableCell>{idea.comments.length}</TableCell>
-                <TableCell>{idea.date}</TableCell>
+                <TableCell>{new Date(idea.date).toDateString()}</TableCell>
                 {idea.author ? (
                   typeof idea.author === "string" ? (
                     <TableCell>{idea.author}</TableCell>
