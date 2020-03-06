@@ -20,6 +20,28 @@ const hubspotClient = new hubspot.Client();
 
 app.use(bodyParser.json());
 
+const getAndSaveHubSpotContacts = async accessToken => {
+  console.log("Getting Contacts From HubSpot");
+  try {
+    hubspotContacts = await axios.get(
+      `http://hubspot_service:8080/api/contacts/${accessToken}`
+    );
+  } catch (err) {
+    console.log(err);
+  }
+
+  for (const contact of hubspotContacts.data) {
+    try {
+      const user = await Users.findOneAndUpdate(
+        { email: contact.properties.email },
+        { hubspotContactId: contact.id }
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  }
+};
+
 app.get("/oauth/connect", async (req, res) => {
   const authorizationUrl = hubspotClient.oauth.getAuthorizationUrl(
     CLIENT_ID,
@@ -48,7 +70,7 @@ app.get("/oauth/callback", async (req, res, next) => {
       { accessToken, refreshToken, expiresAt },
       { new: true, upsert: true }
     );
-
+    await getAndSaveHubSpotContacts(accessToken);
     res.redirect("/");
   } catch (err) {
     next(err);
