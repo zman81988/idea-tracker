@@ -42,6 +42,11 @@ const getAndSaveHubSpotContacts = async accessToken => {
   }
 };
 
+const initialSyncWithHubSpot = async accessToken => {
+  await getAndSaveHubSpotContacts(accessToken);
+  await setUpHubSpotProperties(accessToken);
+};
+
 app.get("/oauth/connect", async (req, res) => {
   const authorizationUrl = hubspotClient.oauth.getAuthorizationUrl(
     CLIENT_ID,
@@ -70,7 +75,8 @@ app.get("/oauth/callback", async (req, res, next) => {
       { accessToken, refreshToken, expiresAt },
       { new: true, upsert: true }
     );
-    await getAndSaveHubSpotContacts(accessToken);
+
+    initialSyncWithHubSpot(accessToken);
     res.redirect("/");
   } catch (err) {
     next(err);
