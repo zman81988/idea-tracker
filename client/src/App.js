@@ -27,9 +27,6 @@ import Profile from "./Users/Profile";
 
 function App() {
   const [user, setUser] = useState({});
-  const logOut = () => {
-    setUser({});
-  };
 
   const isLoggedIn = user =>
     !(Object.entries(user).length === 0 && user.constructor === Object);

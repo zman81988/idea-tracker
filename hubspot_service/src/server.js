@@ -1,4 +1,3 @@
-require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const hubspot = require("@hubspot/api-client");
@@ -78,7 +77,7 @@ apiRouter.get("/contacts/:accessToken", async (req, res, next) => {
   }
 });
 
-apiRouter.post("/contacts/create/:accessToken", async (req, res) => {
+apiRouter.post("/contacts/create/:accessToken", async (req, res, next) => {
   const { accessToken } = req.params;
   hubspotClient.setAccessToken(accessToken);
   const contactsToCreate = req.body;
@@ -100,10 +99,10 @@ apiRouter.post("/contacts/create/:accessToken", async (req, res) => {
     console.log(createResponse.body);
     res.send(createResponse.body);
   } catch (err) {
-    console.log(err.name);
+    next(err);
   }
 });
-apiRouter.post("/contacts/update/:accessToken", async (req, res) => {
+apiRouter.post("/contacts/update/:accessToken", async (req, res, next) => {
   const { accessToken } = req.params;
   hubspotClient.setAccessToken(accessToken);
   const contactsToUpdate = req.body;
@@ -124,12 +123,12 @@ apiRouter.post("/contacts/update/:accessToken", async (req, res) => {
     console.log(updateResponse.body);
     res.send(updateResponse.body);
   } catch (err) {
-    console.log(err.name);
+    next(err);
   }
   // update contacts, will recieve in batches
 });
 
-apiRouter.get("/properties/:accessToken", async (req, res) => {
+apiRouter.get("/properties/:accessToken", async (req, res, next) => {
   const { accessToken } = req.params;
   const propertyGroupInfo = {
     name: "ideatrackergroup",
@@ -161,7 +160,7 @@ apiRouter.get("/properties/:accessToken", async (req, res) => {
         }
       );
     } catch (err) {
-      console.log(err.name);
+      next(err);
     }
   };
   hubspotClient.setAccessToken(accessToken);
@@ -211,7 +210,7 @@ apiRouter.get("/properties/:accessToken", async (req, res) => {
         const propertiesResponse = await createProperty(propertyGroupInfo.name);
         res.send(propertiesResponse);
       } catch (err) {
-        console.log(err);
+        next(err);
       }
     }
   };
