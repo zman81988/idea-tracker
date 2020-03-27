@@ -25,8 +25,8 @@ While this app shows a general architecture for the integration piece, this app 
 
 ## Use Case
 
-- This takes place in the Star Wars Universe
-- The Idea Tracker app was purchased by a weapons manufacturer supplying both the Rebellion and the Empire (referred to as Factions in the app)
+- This takes place in a fictional universe
+- The Idea Tracker app was purchased by a weapons manufacturer supplying both the Friends and the Foes (referred to as Factions in the app)
 - When a user signs up to leave feedback about what kind of improvements they need to their weapons, they are associated to a Faction based on their email domain
 - The manufacture can use that in conjunction with the CRM data to prioritize their road map
 
@@ -37,8 +37,5 @@ While this app shows a general architecture for the integration piece, this app 
 
 ## Planned Features
 
-- Add company sync for Factions
-- Check for existing property groups and properties instead of ignoring a 409 conflict
 - Add Timeline API support for Ideas (the act of creating them)
-- Add Webhooks to support bi-directional syncing
 - Add CRM card support for Ideas
