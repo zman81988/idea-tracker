@@ -1,44 +1,76 @@
 const express = require("express");
-const hubspot = require("@hubspot/api-client");
+
 const bodyParser = require("body-parser");
 const path = require("path");
 const axios = require("axios");
+
+const kafka = require("kafka-node");
+
 const connectDb = require("./connection");
 
 const Account = require("./Accounts.model");
 const Faction = require("./Factions.model");
+const Users = require("./Users.model");
 const userRouter = require("./Users.API");
+const userHandler = require("./Users.webhook");
 const ideaRouter = require("./Ideas.API");
+const { hubspotClient } = require("./utils");
 
 const app = express();
 var apiRouter = express.Router();
 
-const { CLIENT_ID, BASE_URL, SCOPES, CLIENT_SECRET } = process.env;
+const {
+  CLIENT_ID,
+  BASE_URL,
+  SCOPES,
+  CLIENT_SECRET,
+  KAFKA_BROKER_LIST
+} = process.env;
+
+const client = new kafka.KafkaClient({ kafkaHost: KAFKA_BROKER_LIST });
+
+const consumer = new kafka.Consumer(client, [
+  { topic: "contact.propertyChange" }
+]);
+
+consumer.on("message", message => {
+  console.log(message);
+  userHandler(message);
+});
+
+consumer.on("error", err => {
+  console.log(err);
+});
 
 const REDIRECT_URL = `${BASE_URL}/oauth/callback`;
-const hubspotClient = new hubspot.Client();
 
 app.use(bodyParser.json());
 
 const getAndSaveHubSpotContacts = async accessToken => {
   console.log("Getting Contacts From HubSpot");
   try {
-    hubspotContacts = await axios.get(
+    const hubspotContacts = await axios.get(
       `http://hubspot_service:8080/api/contacts/${accessToken}`
     );
-  } catch (err) {
-    console.log(err);
-  }
-
-  for (const contact of hubspotContacts.data) {
-    try {
+    for (const contact of hubspotContacts.data) {
       const user = await Users.findOneAndUpdate(
         { email: contact.properties.email },
         { hubspotContactId: contact.id }
       );
-    } catch (err) {
-      console.log(err);
     }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const setUpHubSpotProperties = async accessToken => {
+  console.log("Setting Up Properties");
+  try {
+    propertiesResponse = await axios.get(
+      `http://hubspot_service:8080/api/properties/${accessToken}`
+    );
+  } catch (err) {
+    console.log(err);
   }
 };
 
@@ -173,6 +205,7 @@ app.use(function(req, res, next) {
 });
 
 app.use((err, req, res, next) => {
+  console.log(err.toString());
   res.status(500).send(err.toString());
 });
 

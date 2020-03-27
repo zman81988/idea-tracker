@@ -1,8 +1,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const hubspot = require("@hubspot/api-client");
+const webhookRouter = require("./webhooks");
 
 const app = express();
-var apiRouter = express.Router();
+const apiRouter = express.Router();
 
 app.use(bodyParser.json());
 
@@ -86,6 +88,18 @@ apiRouter.post("/contacts/update/:accessToken", async (req, res, next) => {
     );
     console.log(updateResponse.body);
     res.send(updateResponse.body);
+  } catch (err) {
+    next(err);
+  }
+});
+
+apiRouter.put("/contacts/update-one/:accessToken", async (req, res, next) => {
+  const { accessToken } = req.params;
+  hubspotClient.setAccessToken(accessToken);
+  const contactToUpdate = req.body;
+  try {
+    console.log("will attempt to update", contactToUpdate);
+    res.send("Ok");
   } catch (err) {
     next(err);
   }
@@ -213,6 +227,8 @@ apiRouter.get("/properties/:accessToken", async (req, res, next) => {
 });
 
 app.use("/api", apiRouter);
+
+app.use("/webhook", webhookRouter);
 
 app.use((err, req, res, next) => {
   res.status(500).send(err.toString());

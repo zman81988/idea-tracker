@@ -1,5 +1,19 @@
 version: "3"
 services:
+  zookeeper:
+    image: zookeeper:3.5
+    expose:
+      - "2181"
+    tmpfs: "/datalog"
+  kafka:
+    image: wurstmeister/kafka
+    expose:
+      - "9092"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file: ./.env
+    depends_on:
+      - zookeeper
   web_service:
     build: ./web_service
     container_name: web_service
