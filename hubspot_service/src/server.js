@@ -1,5 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const hubspot = require("@hubspot/api-client");
 
 const app = express();
 var apiRouter = express.Router();
