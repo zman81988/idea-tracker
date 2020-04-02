@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const userHistorySchema = require("./UserHistory.model");
 const SALT_WORK_FACTOR = 10;
 
 const userSchema = new mongoose.Schema({
@@ -40,8 +41,84 @@ const userSchema = new mongoose.Schema({
   },
   rank: {
     type: String
-  }
+  },
+  propertyHistory: { type: userHistorySchema, default: userHistorySchema }
 });
+
+// add property history handling
+
+const fieldsWithHistory = ["firstName", "lastName", "rank", "email"];
+
+userSchema.pre("findOneAndUpdate", async function(next) {
+  console.log("in find one and update hook");
+  console.log("query update", this.getUpdate());
+  const updatedUser = this.getUpdate();
+  const currentUser = await this.model.findOne(this.getQuery());
+
+  for (const field of fieldsWithHistory) {
+    if (updatedUser[field]) {
+      if (updatedUser[field] !== currentUser[field]) {
+        updatedUser.propertyHistory = {
+          ...updatedUser.propertyHistory,
+          [`${field}History`]: [
+            { value: updatedUser[field], whenModified: Date.now() },
+            ...currentUser.propertyHistory[`${field}History`]
+          ]
+        };
+      }
+    }
+    next();
+  }
+
+  // if (currentUser.firstName !== updatedUser.firstName) {
+  //   console.log("trying to save field history");
+  //   console.log("propertyHistory", updatedUser.propertyHistory);
+  //   updatedUser.propertyHistory = {
+  //     ...updatedUser.propertyHistory,
+  //     firstNameHistory: [
+  //       ...currentUser.propertyHistory.firstNameHistory,
+  //       { value: updatedUser.firstName, whenModified: Date.now() }
+  //     ]
+  //   };
+  //   console.log("user after push", currentUser);
+  //   next();
+  // } else if (currentUser.lastName !== updatedUser.lastName) {
+  //   updatedUser.propertyHistory = {
+  //     ...updatedUser.propertyHistory,
+  //     lastNameHistory: [
+  //       ...currentUser.propertyHistory.lastNameHistory,
+  //       { value: updatedUser.lastName, whenModified: Date.now() }
+  //     ]
+  //   };
+  //   next();
+  // } else {
+  //   return next();
+  // }
+});
+
+userSchema.pre("save", function(next) {
+  const user = this;
+  console.log(user.isModified("firstName"));
+  // if (user.isModified("firstName")) {
+  //   console.log("trying to save field history");
+  //   user.propertyHistory.push({
+  //     firstNameHistory: { value: user.firstName, whenModified: Date.now() }
+  //   });
+  //   console.log("user after push", user);
+  //   next();
+  // } else {
+  //   return next();
+  // }
+  // if (
+  //   !user.isModified("firstName") ||
+  //   !user.isModified("lastName") ||
+  //   !user.isModified("email") ||
+  //   !user.isModified("rank")
+  // )
+  return next();
+  console.log("presave hook", user);
+});
+
 //http://devsmash.com/blog/password-authentication-with-mongoose-and-bcrypt
 userSchema.pre("save", function(next) {
   var user = this;
