@@ -1,0 +1,54 @@
+version: "3"
+services:
+  zookeeper:
+    image: zookeeper:3.5
+    expose:
+      - "2181"
+    tmpfs: "/datalog"
+  kafka:
+    image: wurstmeister/kafka
+    expose:
+      - "9092"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file: ./.env
+    depends_on:
+      - zookeeper
+  web_service:
+    build: .
+    container_name: web_service
+    #context: ./server/
+    command: /usr/app/server/node_modules/.bin/nodemon src/server.js
+    volumes:
+      - ./web_service:/usr/app/server
+      - /usr/app/server/node_modules
+    ports:
+      - "8080:8080"
+    env_file: ./.env
+    depends_on:
+      - mongo
+  hubspot_service:
+    build: ./hubspot_service
+    container_name: hubspot_service
+    #context: ./server/
+    command: /usr/app/node_modules/.bin/nodemon src/server.js
+    volumes:
+      - ./hubspot_service:/usr/app
+      - /usr/app/node_modules
+    ports:
+      - "8080"
+    env_file: ./.env
+    depends_on:
+      - mongo
+  mongo:
+    # upgrade to https://medium.com/faun/managing-mongodb-on-docker-with-docker-compose-26bf8a0bbae3 later
+    image: mongo
+    container_name: idea_tracker_database
+    volumes:
+      - ./mongo-volume:/data/db
+    expose:
+      - "27017"
+volumes:
+  web_service:
+  hubspot_service:
+  mongo:

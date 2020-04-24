@@ -8,7 +8,7 @@
   "author": "Zack Wolfson",
   "license": "MIT",
   "dependencies": {
-    "@hubspot/api-client": "^0.2.0",
+    "@hubspot/api-client": "^1.0.0-beta",
     "axios": "^0.19.2",
     "bcrypt": "^3.0.8",
     "dotenv": "^8.2.0",

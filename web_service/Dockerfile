@@ -6,6 +6,8 @@ COPY ./package.json ./
 
 COPY ./yarn.lock ./
 
+COPY ./ssl ./
+
 #https://github.com/kelektiv/node.bcrypt.js/wiki/Installation-Instructions#docker
 RUN apk --no-cache add --virtual builds-deps build-base python
 

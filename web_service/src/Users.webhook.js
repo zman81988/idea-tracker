@@ -1,14 +1,14 @@
 const Users = require("./Users.model");
 const { fieldMapping } = require("./utils");
 
-const userHandler = async message => {
+const userHandler = async (message) => {
   const event = JSON.parse(message.value);
   const {
     propertyValue,
     propertyName,
     occurredAt,
     objectId,
-    changeSource
+    changeSource,
   } = event;
   if (changeSource === "API") return;
 
