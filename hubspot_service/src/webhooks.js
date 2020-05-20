@@ -11,8 +11,8 @@ const TOPICS = [
   {
     topic: "contact.propertyChange",
     partitions: 1,
-    replicationFactor: 1
-  }
+    replicationFactor: 1,
+  },
 ];
 
 producer.on("ready", () => {
@@ -25,6 +25,19 @@ producer.on("ready", () => {
 const webhookRouter = express.Router();
 
 webhookRouter.post("/platform", (req, res, next) => {
+  // validate webhook signature
+  const payloads = req.body.map((event) => {
+    return {
+      topic: event.subscriptionType,
+      messages: JSON.stringify(event),
+    };
+  });
+  producer.send(payloads, (err, data) => {
+    if (err) {
+      next(err);
+    }
+    console.log(data);
+  });
   res.send("Ok");
 });
 
