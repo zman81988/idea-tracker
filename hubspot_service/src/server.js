@@ -1,9 +1,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const hubspot = require("@hubspot/api-client");
+const webhookRouter = require("./webhooks");
 
 const app = express();
-var apiRouter = express.Router();
+const apiRouter = express.Router();
 
 app.use(bodyParser.json());
 
@@ -46,15 +47,15 @@ apiRouter.post("/contacts/create/:accessToken", async (req, res, next) => {
   const { accessToken } = req.params;
   hubspotClient.setAccessToken(accessToken);
   const contactsToCreate = req.body;
-  const inputs = contactsToCreate.map(contact => {
+  const inputs = contactsToCreate.map((contact) => {
     return {
       properties: {
         num_ideas_submitted: contact.numIdeasSubmitted,
         faction_rank: contact.rank,
         email: contact.email,
         firstname: contact.firstName,
-        lastname: contact.lastName
-      }
+        lastname: contact.lastName,
+      },
     };
   });
   try {
@@ -71,13 +72,13 @@ apiRouter.post("/contacts/update/:accessToken", async (req, res, next) => {
   const { accessToken } = req.params;
   hubspotClient.setAccessToken(accessToken);
   const contactsToUpdate = req.body;
-  const inputs = contactsToUpdate.map(contact => {
+  const inputs = contactsToUpdate.map((contact) => {
     return {
       id: contact.hubspotContactId,
       properties: {
         num_ideas_submitted: contact.numIdeasSubmitted,
-        faction_rank: contact.rank
-      }
+        faction_rank: contact.rank,
+      },
     };
   });
 
@@ -92,6 +93,18 @@ apiRouter.post("/contacts/update/:accessToken", async (req, res, next) => {
   }
 });
 
+apiRouter.put("/contacts/update-one/:accessToken", async (req, res, next) => {
+  const { accessToken } = req.params;
+  hubspotClient.setAccessToken(accessToken);
+  const contactToUpdate = req.body;
+  try {
+    console.log("will attempt to update", contactToUpdate);
+    res.send("Ok");
+  } catch (err) {
+    next(err);
+  }
+});
+
 apiRouter.get(
   "/companies/create-or-update/:faction/:accessToken",
   async (req, res, next) => {
@@ -100,9 +113,9 @@ apiRouter.get(
     const searchCriteria = {
       filterGroups: [
         {
-          filters: [{ propertyName: "domain", operator: "EQ", value: faction }]
-        }
-      ]
+          filters: [{ propertyName: "domain", operator: "EQ", value: faction }],
+        },
+      ],
     };
     try {
       const companiesByDomain = await hubspotClient.crm.companies.searchApi.doSearch(
@@ -112,7 +125,7 @@ apiRouter.get(
         res.send(companiesByDomain.body.results[0]);
       } else {
         const newCompany = await hubspotClient.crm.companies.basicApi.create({
-          properties: { domain: faction }
+          properties: { domain: faction },
         });
         res.send(newCompany.body);
       }
@@ -128,30 +141,30 @@ apiRouter.get("/properties/:accessToken", async (req, res, next) => {
   const propertyGroupInfo = {
     name: "ideatrackergroup",
     displayOrder: -1,
-    label: "Idea Tracker Group"
+    label: "Idea Tracker Group",
   };
-  const createProperty = async groupName => {
+  const createProperty = async (groupName) => {
     const inputs = [
       {
         groupName,
         type: "number",
         label: "Number of Ideas Submitted",
         fieldType: "number",
-        name: "num_ideas_submitted"
+        name: "num_ideas_submitted",
       },
       {
         groupName,
         type: "string",
         label: "Faction Rank",
         fieldType: "string",
-        name: "faction_rank"
-      }
+        name: "faction_rank",
+      },
     ];
     try {
       return await hubspotClient.crm.properties.batchApi.createBatch(
         "contacts",
         {
-          inputs
+          inputs,
         }
       );
     } catch (err) {
@@ -165,7 +178,7 @@ apiRouter.get("/properties/:accessToken", async (req, res, next) => {
     );
 
     const groupExists = existingPropertyGroups.body.results.find(
-      group => group.name === propertyGroupInfo.name
+      (group) => group.name === propertyGroupInfo.name
     );
     if (groupExists) {
       const getAllExistingProperties = async (startingProperties, offset) => {
@@ -185,7 +198,7 @@ apiRouter.get("/properties/:accessToken", async (req, res, next) => {
         } else return endingProperties;
       };
       const allProperties = await getAllExistingProperties([], 0);
-      const existingProperties = allProperties.filter(property => {
+      const existingProperties = allProperties.filter((property) => {
         property.name === "faction_rank" ||
           property.name === "num_ideas_submitted";
       });
@@ -213,7 +226,31 @@ apiRouter.get("/properties/:accessToken", async (req, res, next) => {
   checkForPropInfo();
 });
 
+apiRouter.post("/timeline/:accessToken", async (req, res, next) => {
+  const { idea } = req.body;
+  const { accessToken } = req.params;
+  hubspotClient.setAccessToken(accessToken);
+  const timelineEvent = {
+    eventTemplateId: "1003035",
+    objectId: idea.author.hubspotContactId,
+    tokens: {
+      idea_title: idea.title,
+      idea_detail: idea.detail,
+    },
+  };
+  console.log("sending timeline event", timelineEvent);
+  try {
+    await hubspotClient.crm.timeline.eventsApi.create(timelineEvent);
+    res.send("ok");
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+});
+
 app.use("/api", apiRouter);
+
+app.use("/webhook", webhookRouter);
 
 app.use((err, req, res, next) => {
   res.status(500).send(err.toString());

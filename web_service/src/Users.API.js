@@ -1,6 +1,21 @@
 const express = require("express");
+const axios = require("axios");
 const Users = require("./Users.model");
+const Faction = require("./Factions.model");
+const { getAccessToken } = require("./utils");
 var userRouter = express.Router();
+
+const updateContactOnSave = async contactToUpdate => {
+  const accessToken = await getAccessToken(1);
+  try {
+    await axios.put(
+      `http://hubspot_service:8080/api/contacts/update-one/${accessToken}`,
+      { contactToUpdate }
+    );
+  } catch (err) {
+    console.log(err);
+  }
+};
 
 userRouter.get("/", async (req, res, next) => {
   try {
@@ -14,7 +29,7 @@ userRouter.get("/", async (req, res, next) => {
 userRouter.delete("/", async (req, res, next) => {
   try {
     await Users.deleteMany({});
-    res.send("Delted all users");
+    res.send("Deleted all users");
   } catch (err) {
     next(err);
   }
@@ -57,7 +72,10 @@ userRouter.put("/", async (req, res, next) => {
       { new: true }
     );
     console.log("updatedUser", updatedUser);
+
     res.send({ updatedUser });
+
+    await updateContactOnSave(updatedUser);
   } catch (err) {
     next(err);
   }
