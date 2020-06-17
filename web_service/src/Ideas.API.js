@@ -1,20 +1,18 @@
 const express = require("express");
 const Idea = require("./Ideas.model");
+const User = require("./Users.model");
 var ideaRouter = express.Router();
 
-const createTimeLineEvent = async (idea) => {
-  const accessToken = await getAccessToken(1);
+ideaRouter.get("/:ideaID", async (req, res, next) => {
+  const { ideaID } = req.params;
   try {
-    await axios.post(
-      `http://hubspot_service:8080/api/timeline/${accessToken}`,
-      {
-        idea,
-      }
-    );
+    const idea = await Idea.findOne({ _id: ideaID }).populate("author").exec();
+
+    res.send(idea);
   } catch (err) {
-    console.log(err);
+    next(err);
   }
-};
+});
 
 ideaRouter.get("/", async (req, res, next) => {
   try {
@@ -33,7 +31,6 @@ ideaRouter.post("/", async (req, res, next) => {
     const dbResponse = await Idea.create(idea);
     const populatedIdea = await dbResponse.populate("author").execPopulate();
     res.send(populatedIdea);
-    createTimeLineEvent(populatedIdea);
   } catch (err) {
     next(err);
   }

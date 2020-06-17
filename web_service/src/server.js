@@ -24,21 +24,21 @@ const {
   BASE_URL,
   SCOPES,
   CLIENT_SECRET,
-  KAFKA_BROKER_LIST
+  KAFKA_BROKER_LIST,
 } = process.env;
 
 const client = new kafka.KafkaClient({ kafkaHost: KAFKA_BROKER_LIST });
 
 const consumer = new kafka.Consumer(client, [
-  { topic: "contact.propertyChange" }
+  { topic: "contact.propertyChange" },
 ]);
 
-consumer.on("message", message => {
+consumer.on("message", (message) => {
   console.log(message);
   userHandler(message);
 });
 
-consumer.on("error", err => {
+consumer.on("error", (err) => {
   console.log(err);
 });
 
@@ -46,7 +46,7 @@ const REDIRECT_URL = `${BASE_URL}/oauth/callback`;
 
 app.use(bodyParser.json());
 
-const getAndSaveHubSpotContacts = async accessToken => {
+const getAndSaveHubSpotContacts = async (accessToken) => {
   console.log("Getting Contacts From HubSpot");
   try {
     const hubspotContacts = await axios.get(
@@ -63,7 +63,7 @@ const getAndSaveHubSpotContacts = async accessToken => {
   }
 };
 
-const setUpHubSpotProperties = async accessToken => {
+const setUpHubSpotProperties = async (accessToken) => {
   console.log("Setting Up Properties");
   try {
     propertiesResponse = await axios.get(
@@ -135,7 +135,7 @@ const createExistingContacts = async (accessToken, pageNumber) => {
   }
 };
 
-const createOrUpdateCompanies = async accessToken => {
+const createOrUpdateCompanies = async (accessToken) => {
   console.log("Creating or Updating Companies");
   try {
     const allFactions = await Faction.find({});
@@ -144,7 +144,7 @@ const createOrUpdateCompanies = async accessToken => {
         `http://hubspot_service:8080/api/companies/create-or-update/${faction.domain}/${accessToken}`
       );
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       console.log("company", company.data);
     }
   } catch (err) {
@@ -152,7 +152,7 @@ const createOrUpdateCompanies = async accessToken => {
   }
 };
 
-const initialSyncWithHubSpot = async accessToken => {
+const initialSyncWithHubSpot = async (accessToken) => {
   await getAndSaveHubSpotContacts(accessToken);
   await setUpHubSpotProperties(accessToken);
   await updateExistingHubSpotContacts(accessToken, 0);
@@ -200,7 +200,64 @@ apiRouter.use("/users", userRouter);
 apiRouter.use("/ideas", ideaRouter);
 app.use("/api", apiRouter);
 
-app.use(function(req, res, next) {
+app.post("/webhook/platform", async (req, res, next) => {
+  console.log(req.body);
+  try {
+    const proxyRequest = await axios.post(
+      "http://hubspot_service:8080/webhook/platform",
+      req.body
+    );
+
+    res.send(proxyRequest.status);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/webhook/platform", async (req, res, next) => {
+  console.log(req.query);
+  const { associatedObjectId } = req.query;
+  try {
+    const author = await User.findOne({ hubspotContactId: associatedObjectId });
+    const ideas = await Idea.find({ author });
+    const cards = ideas.map((idea) => {
+      idea.objectId = idea._id;
+      idea.link = null;
+      idea.properties = [
+        { label: "Idea Title", dataType: "STRING", value: idea.title },
+        { label: "Created Date", dataType: "DATETIME", value: idea.date },
+      ];
+      idea.actions = [
+        {
+          type: "IFRAME",
+          width: 890,
+          height: 748,
+          uri: `${process.env.domain}/ideas/${idea._id}`,
+          label: "View Full Idea",
+        },
+      ];
+      return idea;
+    });
+    const cardListing = { results: cards };
+    res.send(cardListing);
+  } catch (err) {
+    next(err);
+  }
+  // TODO handle here instead of proxying to hubspot service
+  // const params = req.query;
+  // try {
+  //   const proxyRequest = await axios.get(
+  //     "http://hubspot_service:8080/webhook/platform",
+  //     { params }
+  //   );
+
+  //   res.send(proxyRequest.status);
+  // } catch (err) {
+  //   next(err);
+  // }
+});
+
+app.use(function (req, res, next) {
   res.status(404).send("The Web Service doesn't know what you are looking for");
 });
 

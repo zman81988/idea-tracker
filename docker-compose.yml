@@ -5,6 +5,9 @@ services:
     expose:
       - "2181"
     tmpfs: "/datalog"
+    volumes:
+      - ~/kafka/data/zookeeper_data:/var/lib/zookeeper/data
+      - ~/kafka/data/zookeeper_log:/var/lib/zookeeper/log
   kafka:
     image: wurstmeister/kafka
     expose:

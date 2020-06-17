@@ -5,7 +5,7 @@ import {
   Toolbar,
   IconButton,
   Typography,
-  Link as MaterialLink
+  Link as MaterialLink,
 } from "@material-ui/core";
 import { Menu } from "@material-ui/icons";
 import {
@@ -13,7 +13,7 @@ import {
   Switch,
   Route,
   Link,
-  Redirect
+  Redirect,
 } from "react-router-dom";
 
 import "./App.css";
@@ -25,10 +25,12 @@ import SignUp from "./Users/SignUp";
 import Login from "./Users/Login";
 import Profile from "./Users/Profile";
 
+import SingleIdea from "./Ideas/SingleIdea";
+
 function App() {
   const [user, setUser] = useState({});
 
-  const isLoggedIn = user =>
+  const isLoggedIn = (user) =>
     !(Object.entries(user).length === 0 && user.constructor === Object);
 
   return (
@@ -80,6 +82,10 @@ function App() {
           ) : (
             <Redirect to="/login" />
           )}
+        </Route>
+
+        <Route path="/idea/:ideaId">
+          <SingleIdea />
         </Route>
         <Route path="/">
           {isLoggedIn(user) ? <Home user={user} /> : <Redirect to="/login" />}

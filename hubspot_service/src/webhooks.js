@@ -32,6 +32,7 @@ webhookRouter.post("/platform", (req, res, next) => {
       messages: JSON.stringify(event),
     };
   });
+  console.log(payloads);
   producer.send(payloads, (err, data) => {
     if (err) {
       next(err);

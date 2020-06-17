@@ -6,7 +6,7 @@ const { CLIENT_ID, CLIENT_SECRET } = process.env;
 
 const hubspotClient = new hubspot.Client();
 
-const getAccessToken = async (accountId) => {
+const getAccessToken = async accountId => {
   try {
     const account = await Account.findOne({ accountId });
     const { expiresAt, accessToken } = account;
@@ -43,7 +43,7 @@ const fieldMapping = {
   firstname: "firstName",
   lastname: "lastName",
   faction_rank: "rank",
-  email: "email",
+  email: "email"
 };
 
 module.exports = { getAccessToken, hubspotClient, fieldMapping };
