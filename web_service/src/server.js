@@ -14,6 +14,7 @@ const Users = require("./Users.model");
 const userRouter = require("./Users.API");
 const userHandler = require("./Users.webhook");
 const ideaRouter = require("./Ideas.API");
+const Ideas = require("./Ideas.model");
 const { hubspotClient } = require("./utils");
 
 const app = express();
@@ -28,6 +29,12 @@ const {
 } = process.env;
 
 const client = new kafka.KafkaClient({ kafkaHost: KAFKA_BROKER_LIST });
+const admin = new kafka.Admin(client);
+admin.listTopics((err, res) => {
+  console.log("topics", res);
+});
+
+// const async topics = await admin.listTopics()
 
 const consumer = new kafka.Consumer(client, [
   { topic: "contact.propertyChange" },
@@ -218,16 +225,19 @@ app.get("/webhook/platform", async (req, res, next) => {
   console.log(req.query);
   const { associatedObjectId } = req.query;
   try {
-    const author = await User.findOne({ hubspotContactId: associatedObjectId });
-    const ideas = await Idea.find({ author });
+    const author = await Users.findOne({
+      hubspotContactId: associatedObjectId,
+    });
+    const ideas = await Ideas.find({ author });
     const cards = ideas.map((idea) => {
-      idea.objectId = idea._id;
-      idea.link = null;
-      idea.properties = [
+      const card = {};
+      card.objectId = idea._id;
+      card.link = null;
+      card.properties = [
         { label: "Idea Title", dataType: "STRING", value: idea.title },
         { label: "Created Date", dataType: "DATETIME", value: idea.date },
       ];
-      idea.actions = [
+      card.actions = [
         {
           type: "IFRAME",
           width: 890,
@@ -236,7 +246,8 @@ app.get("/webhook/platform", async (req, res, next) => {
           label: "View Full Idea",
         },
       ];
-      return idea;
+      console.log(card);
+      return card;
     });
     const cardListing = { results: cards };
     res.send(cardListing);
@@ -255,6 +266,12 @@ app.get("/webhook/platform", async (req, res, next) => {
   // } catch (err) {
   //   next(err);
   // }
+});
+
+app.use(express.static(path.resolve(__dirname, "../../client/build/")));
+console.log(path.resolve(__dirname, "../../client/build/"));
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "../../client/build/index.html"));
 });
 
 app.use(function (req, res, next) {
