@@ -9,8 +9,8 @@ services:
       driver: none
     tmpfs: "/datalog"
     volumes:
-      - ~/data/zookeeper_data:/var/lib/zookeeper/data
-      - ~/data/zookeeper_log:/var/lib/zookeeper/log
+      - /var/zookeeper_data:/var/lib/zookeeper/data
+      - /var/zookeeper_log:/var/lib/zookeeper/log
   kafka:
     container_name: kafka
     image: wurstmeister/kafka

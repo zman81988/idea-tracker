@@ -289,3 +289,21 @@ app.listen(process.env.PORT || 8080, () => {
     console.log("database connected");
   });
 });
+
+const options = {
+  key: fs.readFileSync(
+    path.resolve(__dirname, "../ssl/idea-tracker-tutorial.key")
+  ),
+  cert: fs.readFileSync(
+    path.resolve(__dirname, "../ssl/idea-tracker-tutorial.crt")
+  ),
+};
+if (process.env.NODE_ENV == "production") {
+  https.createServer(options, app).listen(process.env.PORT || 8080);
+} else {
+  app.listen(process.env.PORT || 8080, () => {
+    connectDb().then(() => {
+      console.log("database connected");
+    });
+  });
+}
