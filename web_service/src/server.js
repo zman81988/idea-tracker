@@ -3,7 +3,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
 const axios = require("axios");
-
+const fs = require("fs");
 const kafka = require("kafka-node");
 
 const connectDb = require("./connection");
