@@ -5,8 +5,6 @@ services:
     image: zookeeper:3.5
     expose:
       - "2181"
-    logging:
-      driver: none
     tmpfs: "/datalog"
     volumes:
       - /var/zookeeper_data:/var/lib/zookeeper/data
@@ -19,8 +17,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     env_file: ./.env
-    logging:
-      driver: none
     depends_on:
       - zookeeper
   web_service:
@@ -32,11 +28,12 @@ services:
       - ./web_service:/usr/app/server
       - /usr/app/server/node_modules
     ports:
-      - "8080:8080"
+      - "443:8080"
     env_file: ./.env
     depends_on:
       - mongo
       - kafka
+      - hubspot_service
   hubspot_service:
     build: ./hubspot_service
     container_name: hubspot_service
@@ -52,8 +49,6 @@ services:
       - mongo
   mongo:
     image: mongo
-    logging:
-      driver: none
     container_name: idea_tracker_database
     volumes:
       - ./mongo-volume:/data/db

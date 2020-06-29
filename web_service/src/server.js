@@ -1,5 +1,6 @@
 const express = require("express");
 const https = require("https");
+const http = require("http");
 const bodyParser = require("body-parser");
 const path = require("path");
 const axios = require("axios");
@@ -35,7 +36,7 @@ admin.listTopics((err, res) => {
 });
 
 // const async topics = await admin.listTopics()
-
+/*
 const consumer = new kafka.Consumer(client, [
   { topic: "contact.propertyChange" },
 ]);
@@ -48,7 +49,7 @@ consumer.on("message", (message) => {
 consumer.on("error", (err) => {
   console.log(err);
 });
-
+*/
 const REDIRECT_URL = `${BASE_URL}/oauth/callback`;
 
 app.use(bodyParser.json());
@@ -293,7 +294,10 @@ const options = {
 };
 if (process.env.NODE_ENV == "production") {
   https.createServer(options, app).listen(process.env.PORT || 8080);
-} else {
+  connectDb().then(console.log("connnected to DB production!"))
+// app.listen(443, () =>{connectDb().then()})
+}
+else {
   app.listen(process.env.PORT || 8080, () => {
     connectDb().then(() => {
       console.log("database connected");
