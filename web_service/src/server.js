@@ -270,7 +270,7 @@ app.get("/webhook/platform", async (req, res, next) => {
           type: "IFRAME",
           width: 890,
           height: 748,
-          uri: `${process.env.BASE_URL}/ideas/${idea._id}`,
+          uri: `${process.env.BASE_URL}`,
           label: "View Full Idea",
         },
       },
