@@ -275,7 +275,7 @@ app.get("/webhook/platform", async (req, res, next) => {
         },
       },
     };
-    res.send(cardListing);
+    res.send(JSON.stringify(cardListing));
   } catch (err) {
     next(err);
   }
