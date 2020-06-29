@@ -234,10 +234,20 @@ app.get("/webhook/platform", async (req, res, next) => {
       const card = {};
       card.objectId = idea._id;
       card.title = idea.title;
-      card.link = null;
-      card.properties = [
-        { label: "Idea Title", dataType: "STRING", value: idea.title },
-        { label: "Created Date", dataType: "DATETIME", value: idea.date },
+      card.linkUrl = null;
+      card.tokens = [
+        {
+          label: "Idea Title",
+          dataType: "STRING",
+          value: idea.title,
+          name: "title",
+        },
+        {
+          label: "Created Date",
+          dataType: "DATETIME",
+          value: idea.date,
+          name: "date",
+        },
       ];
       card.actions = [
         {
@@ -253,8 +263,17 @@ app.get("/webhook/platform", async (req, res, next) => {
     });
     const cardListing = {
       totalCount: cards.length,
-      results: cards,
-      responseVersion: "v1",
+      sections: cards,
+      responseVersion: "v2",
+      topLevelActions: {
+        primary: {
+          type: "IFRAME",
+          width: 890,
+          height: 748,
+          uri: `${process.env.BASE_URL}/ideas/${idea._id}`,
+          label: "View Full Idea",
+        },
+      },
     };
     res.send(cardListing);
   } catch (err) {
