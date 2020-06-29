@@ -251,7 +251,11 @@ app.get("/webhook/platform", async (req, res, next) => {
       console.log(card);
       return card;
     });
-    const cardListing = { results: cards };
+    const cardListing = {
+      totalCount: cards.length,
+      results: cards,
+      responseVersion: "v3",
+    };
     res.send(cardListing);
   } catch (err) {
     next(err);
