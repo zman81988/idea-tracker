@@ -254,7 +254,7 @@ app.get("/webhook/platform", async (req, res, next) => {
     const cardListing = {
       totalCount: cards.length,
       results: cards,
-      responseVersion: "v3",
+      responseVersion: "v1",
     };
     res.send(cardListing);
   } catch (err) {
