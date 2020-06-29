@@ -233,6 +233,7 @@ app.get("/webhook/platform", async (req, res, next) => {
     const cards = ideas.map((idea) => {
       const card = {};
       card.objectId = idea._id;
+      card.title = idea.title;
       card.link = null;
       card.properties = [
         { label: "Idea Title", dataType: "STRING", value: idea.title },
@@ -294,10 +295,9 @@ const options = {
 };
 if (process.env.NODE_ENV == "production") {
   https.createServer(options, app).listen(process.env.PORT || 8080);
-  connectDb().then(console.log("connnected to DB production!"))
-// app.listen(443, () =>{connectDb().then()})
-}
-else {
+  connectDb().then(console.log("connnected to DB production!"));
+  // app.listen(443, () =>{connectDb().then()})
+} else {
   app.listen(process.env.PORT || 8080, () => {
     connectDb().then(() => {
       console.log("database connected");
