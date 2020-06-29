@@ -232,10 +232,10 @@ app.get("/webhook/platform", async (req, res, next) => {
     const ideas = await Ideas.find({ author });
     const cards = ideas.map((idea) => {
       const card = {};
-      card.objectId = idea._id;
+      card.id = idea._id;
       card.title = idea.title;
       card.link = null;
-      card.properties = [
+      card.tokens = [
         { label: "Idea Title", dataType: "STRING", value: idea.title },
         { label: "Created Date", dataType: "DATETIME", value: idea.date },
       ];
@@ -253,7 +253,7 @@ app.get("/webhook/platform", async (req, res, next) => {
     });
     const cardListing = {
       totalCount: cards.length,
-      results: cards,
+      sections: cards,
       responseVersion: "v3",
     };
     res.send(cardListing);
