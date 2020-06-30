@@ -230,9 +230,9 @@ app.get("/webhook/platform", async (req, res, next) => {
       hubspotContactId: associatedObjectId,
     });
     const ideas = await Ideas.find({ author });
-    const cards = ideas.map((idea) => {
+    const cards = ideas.map((idea,i) => {
       const card = {};
-      card.objectId = idea._id;
+      card.id = i;
       card.title = idea.title;
       card.linkUrl = null;
       card.tokens = [
@@ -254,7 +254,7 @@ app.get("/webhook/platform", async (req, res, next) => {
           type: "IFRAME",
           width: 890,
           height: 748,
-          uri: `${process.env.BASE_URL}/ideas/${idea._id}`,
+          url: `${process.env.BASE_URL}/ideas/${idea._id}`,
           label: "View Full Idea",
         },
       ];
@@ -264,18 +264,18 @@ app.get("/webhook/platform", async (req, res, next) => {
     const cardListing = {
       totalCount: cards.length,
       sections: cards,
-      responseVersion: "v2",
+      responseVersion: "v3",
       topLevelActions: {
         primary: {
           type: "IFRAME",
           width: 890,
           height: 748,
-          uri: `${process.env.BASE_URL}`,
+          url: `${process.env.BASE_URL}`,
           label: "View Full Idea",
         },
       },
     };
-    res.send(JSON.stringify(cardListing));
+    res.send(cardListing);
   } catch (err) {
     next(err);
   }
