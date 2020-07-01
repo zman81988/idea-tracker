@@ -30,16 +30,21 @@ const {
 } = process.env;
 
 const client = new kafka.KafkaClient({ kafkaHost: KAFKA_BROKER_LIST });
-const admin = new kafka.Admin(client);
-admin.listTopics((err, res) => {
-  console.log("topics", res);
+// const admin = new kafka.Admin(client);
+// admin.listTopics((err, res) => {
+//   console.log("topics", res);
+// });
+
+const topic = [{ topic: "contact.propertyChange" }];
+
+client.refreshMetadata(["contact.propertyChange"], (err, data) => {
+  if (err) {
+    console.log(err);
+  }
+  console.log(data);
 });
 
-// const async topics = await admin.listTopics()
-/*
-const consumer = new kafka.Consumer(client, [
-  { topic: "contact.propertyChange" },
-]);
+const consumer = new kafka.Consumer(client, topic);
 
 consumer.on("message", (message) => {
   console.log(message);
@@ -49,7 +54,7 @@ consumer.on("message", (message) => {
 consumer.on("error", (err) => {
   console.log(err);
 });
-*/
+
 const REDIRECT_URL = `${BASE_URL}/oauth/callback`;
 
 app.use(bodyParser.json());
@@ -230,7 +235,7 @@ app.get("/webhook/platform", async (req, res, next) => {
       hubspotContactId: associatedObjectId,
     });
     const ideas = await Ideas.find({ author });
-    const cards = ideas.map((idea,i) => {
+    const cards = ideas.map((idea, i) => {
       const card = {};
       card.id = i;
       card.title = idea.title;
@@ -254,7 +259,7 @@ app.get("/webhook/platform", async (req, res, next) => {
           type: "IFRAME",
           width: 890,
           height: 748,
-          url: `${process.env.BASE_URL}/ideas/${idea._id}`,
+          url: `${process.env.BASE_URL}/idea/${idea._id}`,
           label: "View Full Idea",
         },
       ];
@@ -279,18 +284,6 @@ app.get("/webhook/platform", async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-  // TODO handle here instead of proxying to hubspot service
-  // const params = req.query;
-  // try {
-  //   const proxyRequest = await axios.get(
-  //     "http://hubspot_service:8080/webhook/platform",
-  //     { params }
-  //   );
-
-  //   res.send(proxyRequest.status);
-  // } catch (err) {
-  //   next(err);
-  // }
 });
 
 app.use(express.static(path.resolve(__dirname, "../../client/build/")));
@@ -318,8 +311,7 @@ const options = {
 };
 if (process.env.NODE_ENV == "production") {
   https.createServer(options, app).listen(process.env.PORT || 8080);
-  connectDb().then(console.log("connnected to DB production!"));
-  // app.listen(443, () =>{connectDb().then()})
+  connectDb().then(console.log("connected to DB production!"));
 } else {
   app.listen(process.env.PORT || 8080, () => {
     connectDb().then(() => {

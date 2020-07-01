@@ -2,6 +2,7 @@ version: "3"
 services:
   zookeeper:
     image: zookeeper:3.5
+    container_name: zookeeper
     expose:
       - "2181"
     tmpfs: "/datalog"
@@ -10,6 +11,7 @@ services:
       - ~/kafka/data/zookeeper_log:/var/lib/zookeeper/log
   kafka:
     image: wurstmeister/kafka
+    container_name: kafka
     expose:
       - "9092"
     volumes:
