@@ -9,7 +9,7 @@
   "license": "MIT",
   "dependencies": {
     "@hubspot/api-client": "^0.4.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "kafka-node": "^5.0.0"
   },
   "devDependencies": {
