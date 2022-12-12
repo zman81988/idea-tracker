@@ -12,7 +12,7 @@
     "axios": "^0.19.2",
     "bcrypt": "^3.0.8",
     "dotenv": "^8.2.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "kafka-node": "^5.0.0",
     "mongoose": "^5.8.10"
   },
